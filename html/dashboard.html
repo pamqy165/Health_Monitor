@@ -124,6 +124,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           Thông tin
         </button>
+        <button class="tab-btn" onclick="switchTab(this, 'tab-ai')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg>
+          Trợ lý AI
+        </button>
       </div>
 
       <!-- ══ TAB: KẾT QUẢ ══ -->
@@ -167,7 +171,7 @@
             <div class="ai-icon-wrap">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg>
             </div>
-            <h3>Dự báo từ AI — 5 phút tới</h3>
+            <h3>Dự báo từ AI</h3>
             <small id="ai-time">--:--:--</small>
           </div>
           <div class="ai-advice" id="ai-advice">Vui lòng chờ dữ liệu từ thiết bị để AI phân tích...</div>
@@ -311,6 +315,26 @@
                 <label>Ghi chú của bác sĩ</label>
                 <input type="text" id="edit-note-field" placeholder="Ghi chú thêm...">
               </div>
+              <div class="info-field">
+                <label>Cân nặng (kg)</label>
+                <input type="number" id="edit-weight" placeholder="VD: 65">
+              </div>
+              <div class="info-field">
+                <label>Chiều cao (cm)</label>
+                <input type="number" id="edit-height" placeholder="VD: 170">
+              </div>
+              <div class="info-field full">
+                <label>Tiền sử bệnh</label>
+                <textarea id="edit-history" rows="2" placeholder="VD: Tiểu đường type 2, tăng huyết áp..."></textarea>
+              </div>
+              <div class="info-field full">
+                <label>Thuốc đang dùng</label>
+                <textarea id="edit-medicine" rows="2" placeholder="VD: Metformin 500mg, Amlodipine 5mg..."></textarea>
+              </div>
+              <div class="info-field full">
+                <label>Dị ứng</label>
+                <input type="text" id="edit-allergy" placeholder="VD: Penicillin, hải sản...">
+              </div>
             </div>
 
             <button class="btn-save-info" onclick="savePatientInfo()">
@@ -320,7 +344,35 @@
           </div>
         </div>
       </div>
+      <!-- ══ TAB: TRỢ LÝ AI ══ -->
+      <div class="tab-panel" id="tab-ai">
+        <div class="ai-chat-wrap">
+          <div class="ai-chat-header">
+            <div class="ai-chat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg>
+            </div>
+            <div>
+              <h3 id="chat-title">Trợ lý AI</h3>
+              <p id="chat-sub">Đang tải thông tin bệnh nhân...</p>
+            </div>
+            <button class="btn-clear-chat" onclick="clearChat()">Xoá hội thoại</button>
+          </div>
 
+          <div class="ai-chat-messages" id="chatMessages">
+            <div class="chat-msg ai">
+              <div class="chat-bubble">Xin chào! Đang tải dữ liệu bệnh nhân, vui lòng chờ...</div>
+            </div>
+          </div>
+
+          <div class="ai-chat-input">
+            <textarea id="chatInput" placeholder="Hỏi về tình trạng sức khỏe bệnh nhân..." rows="1"
+              onkeydown="handleChatKey(event)"></textarea>
+            <button class="btn-send" id="btnSend" onclick="sendChat()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 19-7z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
     </div><!-- /page-content -->
   </div><!-- /main -->
 

@@ -22,6 +22,11 @@ window.db.ref('patients/' + patientId + '/profile').on('value', function(snap) {
   document.getElementById('edit-phone').value     = profile.phone     || '';
   document.getElementById('edit-diagnosis').value = profile.diagnosis || '';
   document.getElementById('edit-note-field').value= profile.note      || '';
+  document.getElementById('edit-weight').value   = profile.weight   || '';
+  document.getElementById('edit-height').value   = profile.height   || '';
+  document.getElementById('edit-history').value  = profile.history  || '';
+  document.getElementById('edit-medicine').value = profile.medicine || '';
+  document.getElementById('edit-allergy').value  = profile.allergy  || '';
 });
 
 /* ================================================================
@@ -273,7 +278,12 @@ function computeAverages(data) {
     relation:  document.getElementById('edit-relation').value,
     phone:     document.getElementById('edit-phone').value.trim(),
     diagnosis: document.getElementById('edit-diagnosis').value.trim(),
-    note:      document.getElementById('edit-note-field').value.trim()
+    note:      document.getElementById('edit-note-field').value.trim(),
+    weight:    parseFloat(document.getElementById('edit-weight').value) || null,
+    height:    parseFloat(document.getElementById('edit-height').value) || null,
+    history:   document.getElementById('edit-history').value.trim(),
+    medicine:  document.getElementById('edit-medicine').value.trim(),
+    allergy:   document.getElementById('edit-allergy').value.trim()
   }).then(() => {
     document.getElementById('ph-name').textContent   = name;
     document.getElementById('bc-name').textContent   = name;
@@ -281,6 +291,169 @@ function computeAverages(data) {
     showToast('✅ Đã lưu thông tin bệnh nhân');
   }).catch(() => showToast('❌ Lưu thất bại', 'error'));
 }
+
+/* ================================================================
+   AI CHAT BOX
+   ================================================================ */
+const GROQ_API_KEY_CHAT = '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'; // ← key Groq của bạn
+const CHAT_MODEL        = 'llama-3.3-70b-versatile';
+const MAX_SAMPLES_CHAT  = 30;
+
+let chatHistory    = []; // lịch sử hội thoại gửi lên Groq
+let chatContext    = ''; // context bệnh nhân (load 1 lần)
+let chatReady      = false;
+let chatInited     = false;
+
+/* ── Load context khi mở tab lần đầu ── */
+async function initChatContext() {
+  if (chatInited) return;
+  chatInited = true;
+
+  // Lấy profile
+  const profileSnap = await window.db.ref('patients/' + patientId + '/profile').once('value');
+  const profile = profileSnap.val() || {};
+
+  // Lấy tối đa 30 mẫu healthData gần nhất
+  const hdSnap = await window.db.ref('patients/' + patientId + '/healthData').once('value');
+  const raw    = hdSnap.val() || {};
+  const allSamples = Object.values(raw)
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+    .slice(0, MAX_SAMPLES_CHAT);
+
+  // Tóm tắt samples
+  const sampleLines = allSamples.map((r, i) => {
+    const ts  = r.timestamp ? r.timestamp.slice(0, 19).replace('T', ' ') : '--';
+    return `  [${i+1}] ${ts} | BPM=${r.heart_rate ?? '--'}, SpO2=${r.spo2 ?? '--'}%, Nhiệt độ=${r.temperature ?? '--'}°C${r.note ? ' | Ghi chú: ' + r.note : ''}`;
+  }).join('\n');
+
+  // Tính BMI nếu có
+  const bmiLine = (profile.weight && profile.height)
+    ? `- BMI: ${(profile.weight / ((profile.height / 100) ** 2)).toFixed(1)} (nặng ${profile.weight}kg, cao ${profile.height}cm)`
+    : '- BMI: Chưa có dữ liệu cân nặng/chiều cao';
+
+  chatContext = `Bạn là bác sĩ AI hỗ trợ hệ thống giám sát sức khỏe từ xa.
+    Trả lời bằng tiếng Việt, ngắn gọn và chuyên nghiệp.
+    Luôn dựa vào dữ liệu thực tế của bệnh nhân khi trả lời.
+
+=== THÔNG TIN BỆNH NHÂN ===
+- Tên: ${profile.name || 'Chưa có'}
+- Tuổi: ${profile.age || 'Chưa có'}
+- Giới tính: ${profile.gender || 'Chưa có'}
+- Quan hệ: ${profile.relation || 'Chưa có'}
+- Chẩn đoán: ${profile.diagnosis || 'Chưa có'}
+- Tiền sử bệnh: ${profile.history || 'Chưa có'}
+- Thuốc đang dùng: ${profile.medicine || 'Chưa có'}
+- Dị ứng: ${profile.allergy || 'Chưa có'}
+${bmiLine}
+
+=== DỮ LIỆU SỨC KHỎE (${allSamples.length} mẫu gần nhất) ===
+${sampleLines || '  (Chưa có dữ liệu)'}`;
+
+  // Cập nhật UI
+  const name = profile.name || 'Bệnh nhân';
+  document.getElementById('chat-title').textContent = `Trợ lý AI — ${name}`;
+  document.getElementById('chat-sub').textContent   = `Đã tải ${allSamples.length} mẫu dữ liệu · Sẵn sàng tư vấn`;
+
+  // Tin nhắn chào
+  chatHistory = [];
+  const greeting = `Xin chào! Tôi đã có đầy đủ thông tin của ${name} bao gồm hồ sơ cá nhân và ${allSamples.length} mẫu dữ liệu sức khỏe gần nhất. Bạn muốn hỏi gì về tình trạng của bệnh nhân?`;
+  appendMessage('ai', greeting);
+  chatReady = true;
+}
+
+/* ── Gửi tin nhắn ── */
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const text  = input.value.trim();
+  if (!text || !chatReady) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+
+  appendMessage('user', text);
+  chatHistory.push({ role: 'user', content: text });
+
+  const btn = document.getElementById('btnSend');
+  btn.disabled = true;
+  const typingEl = appendMessage('ai', 'Đang phân tích...', true);
+
+  try {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': 'Bearer ' + GROQ_API_KEY_CHAT
+      },
+      body: JSON.stringify({
+        model:       CHAT_MODEL,
+        temperature: 0.4,
+        max_tokens:  600,
+        messages: [
+          { role: 'system', content: chatContext },
+          ...chatHistory
+        ]
+      })
+    });
+
+    const data   = await response.json();
+    const answer = data.choices?.[0]?.message?.content || 'Xin lỗi, tôi không thể trả lời lúc này.';
+
+    typingEl.textContent = answer;
+    typingEl.classList.remove('typing');
+    chatHistory.push({ role: 'assistant', content: answer });
+
+    // Giới hạn lịch sử 20 lượt để tránh vượt token
+    if (chatHistory.length > 40) chatHistory = chatHistory.slice(-40);
+
+  } catch (e) {
+    typingEl.textContent = 'Lỗi kết nối, vui lòng thử lại.';
+    typingEl.classList.remove('typing');
+    chatHistory.pop();
+  }
+
+  btn.disabled = false;
+  input.focus();
+}
+
+/* ── Append message lên UI ── */
+function appendMessage(role, text, isTyping = false) {
+  const box    = document.getElementById('chatMessages');
+  const msgDiv = document.createElement('div');
+  msgDiv.className = `chat-msg ${role}`;
+
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble' + (isTyping ? ' typing' : '');
+  bubble.textContent = text;
+
+  msgDiv.appendChild(bubble);
+  box.appendChild(msgDiv);
+  box.scrollTop = box.scrollHeight;
+  return bubble;
+}
+
+/* ── Xoá hội thoại ── */
+function clearChat() {
+  chatHistory = [];
+  const box   = document.getElementById('chatMessages');
+  box.innerHTML = '';
+  const name  = document.getElementById('chat-title').textContent.replace('Trợ lý AI — ', '');
+  appendMessage('ai', `Hội thoại đã được xoá. Tôi vẫn giữ đầy đủ thông tin của ${name}. Bạn muốn hỏi gì?`);
+}
+
+/* ── Enter gửi, Shift+Enter xuống dòng ── */
+function handleChatKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendChat();
+  }
+}
+
+/* ── Kích hoạt khi mở tab ── */
+const _origSwitchTab = switchTab;
+window.switchTab = function(btn, panelId) {
+  _origSwitchTab(btn, panelId);
+  if (panelId === 'tab-ai') initChatContext();
+};
 
 /* ================================================================
    INIT
