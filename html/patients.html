@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Danh sách Bệnh nhân — Hệ thống giám sát sức khỏe</title>
+  
+  <!-- Thư viện -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <link rel="stylesheet" href="../css/shared.css">
+  <link rel="stylesheet" href="../css/patients.css">
+</head>
+<body>
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-icon">
+          <img src="../images/Logo HCM-UTE.png" alt="HCMUTE">
+        </div>
+        <div class="logo-text">
+          <span>NHÓM 05</span>
+          <small>TT Cơ sở và Ứng dụng IoT</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="user-avatar"></div>
+      <div class="user-info">
+        <span></span>
+        <small></small>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Điều hướng</div>
+
+      <a class="nav-item" href="../html/overview.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Tổng quan
+      </a>
+
+      <a class="nav-item active" href="../html/patients.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        Danh sách BN
+      </a>
+
+      <a class="nav-item" href="../html/save_result.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/>
+          <polyline points="7 3 7 8 15 8"/>
+        </svg>
+        Lưu kết quả
+        <span class="badge">Live</span>
+      </a>
+
+      <div class="nav-section-label" style="margin-top:8px;">Thông tin</div>
+
+      <a class="nav-item" href="../html/guide.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" x2="12" y1="8" y2="12"/>
+          <line x1="12" x2="12.01" y1="16" y2="16"/>
+        </svg>
+        Hướng dẫn
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="btn-logout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" x2="9" y1="12" y2="12"/>
+        </svg>
+        Đăng xuất
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <div class="main">
+
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1>Hệ thống giám sát và cảnh báo sức khỏe từ xa</h1>
+      </div>
+      <div class="topbar-right">
+        <div class="status-pill">
+          <span class="dot"></span>
+          Hệ thống đang hoạt động
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <div style="margin-bottom:20px; display:flex; align-items:flex-end; justify-content:space-between;">
+        <div>
+          <h2 style="font-size:20px;font-weight:700;color:var(--text-dark);">Danh sách Bệnh nhân</h2>
+          <p style="font-size:13px;color:var(--text-light);margin-top:3px;">Quản lý và theo dõi tất cả bệnh nhân đang được giám sát</p>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="patients-toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input type="text" id="searchInput" placeholder="Tìm theo tên hoặc mã BN..." oninput="filterPatients()">
+        </div>
+        <select class="filter-select" id="filterStatus" onchange="filterPatients()">
+          <option value="all">Tất cả trạng thái</option>
+          <option value="normal">Bình thường</option>
+          <option value="warning">Cần theo dõi</option>
+          <option value="danger">Nguy hiểm</option>
+          <option value="offline">Offline</option>
+        </select>
+        <button class="btn-add" onclick="openModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Thêm bệnh nhân
+        </button>
+      </div>
+
+      <!-- Patient grid -->
+      <div class="patient-grid" id="patientGrid"></div>
+
+    </div>
+  </div>
+
+  <!-- ===== ADD PATIENT MODAL ===== -->
+  <div class="modal-backdrop" id="modalBackdrop" onclick="handleBackdropClick(event)">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Thêm bệnh nhân mới</h3>
+        <button class="modal-close" onclick="closeModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="m-field">
+          <label>Họ và tên *</label>
+          <input type="text" id="newName" placeholder="Nhập họ và tên đầy đủ">
+        </div>
+        <div class="m-row">
+          <div class="m-field">
+            <label>Tuổi *</label>
+            <input type="number" id="newAge" placeholder="VD: 65" min="1" max="120">
+          </div>
+          <div class="m-field">
+            <label>Giới tính</label>
+            <select id="newGender">
+              <option value="Nam">Nam</option>
+              <option value="Nữ">Nữ</option>
+              <option value="Khác">Khác</option>
+            </select>
+          </div>
+        </div>
+        <div class="m-row">
+          <div class="m-field">
+            <label>Mã bệnh nhân</label>
+            <input type="text" id="newId" placeholder="VD: BN006">
+          </div>
+          <div class="m-field">
+            <label>Quan hệ</label>
+            <select id="newRelation">
+              <option>Ông</option><option>Bà</option><option>Bố</option>
+              <option>Mẹ</option><option>Anh / Chị</option>
+              <option>Em</option><option>Con</option><option>Khác</option>
+            </select>
+          </div>
+        </div>
+        <div class="m-field">
+          <label>Ghi chú / Chẩn đoán</label>
+          <input type="text" id="newNote" placeholder="Tiền sử bệnh, chẩn đoán ban đầu...">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal()">Huỷ</button>
+        <button class="btn-save" onclick="addPatient()">Lưu bệnh nhân</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"><span id="toast-msg"></span></div>
+
+  <script src="../js/firebase.js"></script>
+  <script src="../js/shared.js"></script>
+  <script src="../js/patients.js"></script>
+</body>
+</html>

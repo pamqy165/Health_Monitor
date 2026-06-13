@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Bệnh nhân — Hệ thống giám sát sức khỏe</title>
+
+  <!-- Thư viện -->
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  
+  <link rel="stylesheet" href="../css/shared.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-icon">
+          <img src="../images/Logo HCM-UTE.png" alt="HCMUTE">
+        </div>
+        <div class="logo-text">
+          <span>NHÓM 05</span>
+          <small>TT Cơ sở và Ứng dụng IoT</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="user-avatar"></div>
+      <div class="user-info">
+        <span></span>
+        <small></small>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Điều hướng</div>
+      <a class="nav-item" href="../html/overview.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Tổng quan
+      </a>
+      <a class="nav-item active" href="../html/patients.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Danh sách BN
+      </a>
+      <a class="nav-item" href="../html/save_result.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+        Lưu kết quả
+        <span class="badge">Live</span>
+      </a>
+      <div class="nav-section-label" style="margin-top:8px;">Thông tin</div>
+      <a class="nav-item" href="../html/guide.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+        Hướng dẫn
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="btn-logout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+        Đăng xuất
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <div class="main">
+
+    <header class="topbar">
+      <h1>Hệ thống giám sát và cảnh báo sức khỏe từ xa</h1>
+      <div class="topbar-right">
+        <div class="status-pill"><span class="dot"></span>Hệ thống đang hoạt động</div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- Breadcrumb -->
+      <div class="breadcrumb">
+        <a href="../html/patients.html">← Danh sách bệnh nhân</a>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        <span id="bc-name">Đang tải...</span>
+      </div>
+
+      <!-- Patient header -->
+      <div class="patient-header">
+        <div class="ph-avatar" id="ph-avatar">--</div>
+        <div class="ph-info">
+          <div class="ph-name" id="ph-name">Đang tải...</div>
+          <div class="ph-meta">
+            <span id="ph-id">--</span>
+            <span id="ph-age">--</span>
+            <span id="ph-gender">--</span>
+            <span id="ph-note">--</span>
+          </div>
+        </div>
+        <div class="ph-status normal" id="ph-status">
+          <span class="sdot"></span>
+          <span id="ph-status-text">Bình thường</span>
+        </div>
+      </div>
+
+      <!-- Tab bar -->
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab(this, 'tab-result')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          Kết quả
+        </button>
+        <button class="tab-btn" onclick="switchTab(this, 'tab-history')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Lịch sử
+        </button>
+        <button class="tab-btn" onclick="switchTab(this, 'tab-analytics')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Phân tích
+        </button>
+        <button class="tab-btn" onclick="switchTab(this, 'tab-info')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Thông tin
+        </button>
+      </div>
+
+      <!-- ══ TAB: KẾT QUẢ ══ -->
+      <div class="tab-panel active" id="tab-result">
+        <div class="grid-3">
+          <div class="vital-card vc-blue">
+            <div class="vc-icon blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </div>
+            <div class="vc-body">
+              <div class="vc-label">Nhịp Tim</div>
+              <div><span class="vc-value" id="live-bpm">--</span><span class="vc-unit">BPM</span></div>
+              <div class="vc-status st-normal" id="bpm-status">Đang chờ...</div>
+            </div>
+          </div>
+          <div class="vital-card vc-green">
+            <div class="vc-icon green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6m0 0C8 8 4 12 4 16a8 8 0 0 0 16 0c0-4-4-8-8-8z"/></svg>
+            </div>
+            <div class="vc-body">
+              <div class="vc-label">SpO₂</div>
+              <div><span class="vc-value" id="live-spo2">--</span><span class="vc-unit">%</span></div>
+              <div class="vc-status st-normal" id="spo2-status">Đang chờ...</div>
+            </div>
+          </div>
+          <div class="vital-card vc-orange">
+            <div class="vc-icon orange">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+            </div>
+            <div class="vc-body">
+              <div class="vc-label">Nhiệt Độ</div>
+              <div><span class="vc-value" id="live-temp">--</span><span class="vc-unit">°C</span></div>
+              <div class="vc-status st-normal" id="temp-status">Đang chờ...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Card -->
+        <div class="ai-card">
+          <div class="ai-card-header">
+            <div class="ai-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg>
+            </div>
+            <h3>Dự báo từ AI — 5 phút tới</h3>
+            <small id="ai-time">--:--:--</small>
+          </div>
+          <div class="ai-advice" id="ai-advice">Vui lòng chờ dữ liệu từ thiết bị để AI phân tích...</div>
+          <div class="ai-risk-row">
+            <span class="ai-risk-label">Độ rủi ro:</span>
+            <div class="risk-bar-wrap">
+              <div class="risk-bar-fill" id="risk-bar" style="width:0%;background:var(--green);"></div>
+            </div>
+            <span class="risk-pct" id="risk-pct" style="color:var(--green);">0%</span>
+          </div>
+        </div>
+
+        <!-- Trend chart -->
+        <div class="chart-wrap">
+          <div class="chart-title">
+            Xu hướng 24 giờ qua
+            <span id="last-update-text">Cập nhật liên tục</span>
+          </div>
+          <canvas id="trendChart" height="120"></canvas>
+        </div>
+      </div>
+
+      <!-- ══ TAB: LỊCH SỬ ══ -->
+      <div class="tab-panel" id="tab-history">
+        <div class="card">
+          <div class="card-header">
+            <div class="ch-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div>
+              <h3>Lịch sử đo</h3>
+              <p>Tất cả các lần đo đã lưu từ Firebase</p>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>Thời gian</th><th>Nhịp Tim</th><th>SpO₂</th>
+                  <th>Nhiệt độ</th><th>Trạng thái</th><th>Ghi chú</th>
+                </tr>
+              </thead>
+              <tbody id="historyBody">
+                <tr><td colspan="6" class="empty-table">Đang tải dữ liệu...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ TAB: PHÂN TÍCH ══ -->
+      <div class="tab-panel" id="tab-analytics">
+        <div class="daily-grid">
+          <div class="daily-card">
+            <div class="dc-label">TB Nhịp tim hôm nay</div>
+            <div class="dc-val" id="avg-bpm">--</div>
+            <div class="dc-sub">BPM</div>
+          </div>
+          <div class="daily-card">
+            <div class="dc-label">TB SpO₂ hôm nay</div>
+            <div class="dc-val" id="avg-spo2">--</div>
+            <div class="dc-sub">%</div>
+          </div>
+          <div class="daily-card">
+            <div class="dc-label">TB Nhiệt độ hôm nay</div>
+            <div class="dc-val" id="avg-temp">--</div>
+            <div class="dc-sub">°C</div>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <div class="chart-title">SpO₂ <span>60 mẫu gần nhất</span></div>
+          <canvas id="spo2Chart" height="100"></canvas>
+        </div>
+        <div class="chart-wrap">
+          <div class="chart-title">Nhịp tim (BPM) <span>60 mẫu gần nhất</span></div>
+          <canvas id="hrChart" height="100"></canvas>
+        </div>
+        <div class="chart-wrap">
+          <div class="chart-title">Nhiệt độ cơ thể (°C) <span>60 mẫu gần nhất</span></div>
+          <canvas id="tempChart" height="100"></canvas>
+        </div>
+        <div class="chart-wrap">
+          <div class="chart-title">Tổng hợp theo ngày <span>Trung bình mỗi ngày</span></div>
+          <canvas id="dailyChart" height="100"></canvas>
+        </div>
+        <div class="trend-comment">
+          <h4>Nhận xét xu hướng</h4>
+          <p id="trend-comment">Đang phân tích dữ liệu...</p>
+        </div>
+      </div>
+
+      <!-- ══ TAB: THÔNG TIN ══ -->
+      <div class="tab-panel" id="tab-info">
+        <div class="card">
+          <div class="card-header">
+            <div class="ch-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div>
+              <h3>Thông tin bệnh nhân</h3>
+              <p>Chỉnh sửa và lưu thông tin cá nhân</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="info-grid">
+              <div class="info-field">
+                <label>Họ và tên</label>
+                <input type="text" id="edit-name" placeholder="Nhập họ và tên">
+              </div>
+              <div class="info-field">
+                <label>Mã bệnh nhân</label>
+                <input type="text" id="edit-id" readonly>
+              </div>
+              <div class="info-field">
+                <label>Tuổi</label>
+                <input type="number" id="edit-age" min="1" max="120" placeholder="Tuổi">
+              </div>
+              <div class="info-field">
+                <label>Giới tính</label>
+                <select id="edit-gender">
+                  <option>Nam</option><option>Nữ</option><option>Khác</option>
+                </select>
+              </div>
+              <div class="info-field">
+                <label>Quan hệ</label>
+                <select id="edit-relation">
+                  <option>Ông</option><option>Bà</option><option>Bố</option>
+                  <option>Mẹ</option><option>Anh / Chị</option>
+                  <option>Em</option><option>Con</option><option>Khác</option>
+                </select>
+              </div>
+              <div class="info-field">
+                <label>Số điện thoại</label>
+                <input type="tel" id="edit-phone" placeholder="09xx xxx xxx">
+              </div>
+              <div class="info-field full">
+                <label>Chẩn đoán / Bệnh lý</label>
+                <input type="text" id="edit-diagnosis" placeholder="Ví dụ: Suy tim, Tăng huyết áp...">
+              </div>
+              <div class="info-field full">
+                <label>Ghi chú của bác sĩ</label>
+                <input type="text" id="edit-note-field" placeholder="Ghi chú thêm...">
+              </div>
+            </div>
+
+            <button class="btn-save-info" onclick="savePatientInfo()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Lưu thông tin
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+  </div><!-- /main -->
+
+  <!-- Toast -->
+  <div class="toast" id="toast"><span id="toast-msg"></span></div>
+
+  <script src="../js/firebase.js"></script>
+  <script src="../js/shared.js"></script>
+  <script src="../js/mqtt.js"></script>
+  <script src="../js/dashboard.js"></script>
+</body>
+</html>

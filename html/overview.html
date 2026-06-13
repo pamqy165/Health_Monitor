@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tổng quan — Hệ thống giám sát sức khỏe</title>
+  
+  <!-- Thư viện -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <link rel="stylesheet" href="../css/shared.css">
+  <link rel="stylesheet" href="../css/overview.css">
+</head>
+<body>
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-icon">
+          <img src="../images/Logo HCM-UTE.png" alt="HCMUTE">
+        </div>
+        <div class="logo-text">
+          <span>NHÓM 05</span>
+          <small>TT Cơ sở và Ứng dụng IoT</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="user-avatar"></div>
+      <div class="user-info">
+        <span></span>
+        <small></small>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Điều hướng</div>
+
+      <a class="nav-item active" href="../html/overview.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Tổng quan
+      </a>
+
+      <a class="nav-item" href="../html/patients.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        Danh sách BN
+      </a>
+
+      <a class="nav-item" href="../html/save_result.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/>
+          <polyline points="7 3 7 8 15 8"/>
+        </svg>
+        Lưu kết quả
+        <span class="badge">Live</span>
+      </a>
+
+      <div class="nav-section-label" style="margin-top:8px;">Thông tin</div>
+
+      <a class="nav-item" href="../html/guide.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" x2="12" y1="8" y2="12"/>
+          <line x1="12" x2="12.01" y1="16" y2="16"/>
+        </svg>
+        Hướng dẫn
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="btn-logout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" x2="9" y1="12" y2="12"/>
+        </svg>
+        Đăng xuất
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <div class="main">
+
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1>Hệ thống giám sát và cảnh báo sức khỏe từ xa</h1>
+      </div>
+      <div class="topbar-right">
+        <div class="status-pill">
+          <span class="dot"></span>
+          Hệ thống đang hoạt động
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- Hero -->
+      <div class="hero-banner">
+        <div class="hero-text">
+          <h2>Ứng dụng IoT để Giám sát và Cảnh báo Sức khỏe Từ xa</h2>
+          <p>Hệ thống giám sát và cảnh báo sức khỏe từ xa giúp người dùng theo dõi tình trạng sức khỏe
+            của người thân thông qua các chỉ số nhịp tim (BPM), SpO₂ và nhiệt độ cơ thể. Dữ liệu được
+            thu thập từ thiết bị IoT và cập nhật liên tục lên nền tảng đám mây. Hệ thống hỗ trợ lưu trữ
+            lịch sử theo dõi và phát hiện các dấu hiệu bất thường. Qua đó, người dùng có thể chủ động
+            chăm sóc và bảo vệ sức khỏe người thân mọi lúc, mọi nơi.
+          </p>
+        </div>
+      </div>
+
+      <!-- GVHD -->
+      <div class="gvhd-card">
+        <div class="gvhd-avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </div>
+        <div class="gvhd-info">
+          <h3>Ths. Trịnh Quốc Thanh — Giảng viên hướng dẫn</h3>
+          <p>Môn: Cơ sở và Ứng dụng IoTs · Lớp ITFA436064_07</p>
+          <div class="meta">
+            <span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.36 12 19.79 19.79 0 0 1 1.09 3.18 2 2 0 0 1 3.07 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91"/></svg>
+              Khoa Điện – Điện Tử
+            </span>
+            <span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+              HCM-UTE · 2026
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Two columns: Mục tiêu + Thành viên -->
+      <div class="two-col">
+
+        <div class="card">
+          <div class="card-header-ov">
+            <h3>
+              <div class="ch-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <circle cx="12" cy="12" r="6"/>
+                  <circle cx="12" cy="12" r="2"/>
+                </svg>
+              </div>
+              Mục tiêu đề tài
+            </h3>
+          </div>
+          <div class="card-body-ov">
+            <div class="objective-list">
+              <div class="obj-item">
+                <div class="obj-num">1</div>
+                <div class="obj-content">
+                  <h4>Thu thập chỉ số sinh tồn theo thời gian thực</h4>
+                  <p>Đo nhịp tim (BPM), nồng độ oxy máu (SpO₂) và nhiệt độ cơ thể liên tục từ cảm biến MAX30102 và DS18B20.</p>
+                </div>
+              </div>
+              <div class="obj-item">
+                <div class="obj-num">2</div>
+                <div class="obj-content">
+                  <h4>Truyền tải và lưu trữ dữ liệu lên đám mây</h4>
+                  <p>Đóng gói JSON qua giao thức MQTT, đồng bộ Firebase Realtime Database để truy cập mọi nơi, mọi lúc.</p>
+                </div>
+              </div>
+              <div class="obj-item">
+                <div class="obj-num">3</div>
+                <div class="obj-content">
+                  <h4>Phân tích AI và cảnh báo thông minh</h4>
+                  <p>Mô hình LSTM dự báo xu hướng 5 phút tới, kết hợp Rule-based cá nhân hóa theo tuổi/giới tính.</p>
+                </div>
+              </div>
+              <div class="obj-item">
+                <div class="obj-num">4</div>
+                <div class="obj-content">
+                  <h4>Giao diện Dashboard giám sát từ xa</h4>
+                  <p>Website hiện đại giúp bác sĩ, người thân theo dõi lịch sử, biểu đồ và nhận cảnh báo tức thời.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header-ov">
+            <h3>
+              <div class="ch-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+              </div>
+              Thành viên nhóm 05
+            </h3>
+          </div>
+          <div class="card-body-ov">
+            <div class="team-list">
+              <div class="team-item">
+                <div class="team-avatar">GT</div>
+                <div class="team-info"><h4>Võ Gia Triết</h4><p>MSSV: 23161345</p></div>
+                <span class="team-role lead">Nhóm trưởng</span>
+              </div>
+              <div class="team-item">
+                <div class="team-avatar">NQ</div>
+                <div class="team-info"><h4>Phan Ngọc Như Quỳnh</h4><p>MSSV: 23161319</p></div>
+                <span class="team-role team">Thành viên</span>
+              </div>
+              <div class="team-item">
+                <div class="team-avatar">PQ</div>
+                <div class="team-info"><h4>Phạm Ngọc Quý</h4><p>MSSV: 23161320</p></div>
+                <span class="team-role team">Thành viên</span>
+              </div>
+              <div class="team-item">
+                <div class="team-avatar">AL</div>
+                <div class="team-info"><h4>Bùi Ngô Anh Luân</h4><p>MSSV: 23161291</p></div>
+                <span class="team-role team">Thành viên</span>
+              </div>
+              <div class="team-item">
+                <div class="team-avatar">NT</div>
+                <div class="team-info"><h4>Nguyễn Nhựt Thành</h4><p>MSSV: 23131329</p></div>
+                <span class="team-role team">Thành viên</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Two columns: Thiết bị + Chức năng -->
+      <div class="two-col">
+
+        <div class="card">
+          <div class="card-header-ov">
+            <h3>
+              <div class="ch-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="16" height="20" x="4" y="2" rx="2"/>
+                  <line x1="8" x2="16" y1="6" y2="6"/>
+                  <line x1="8" x2="16" y1="10" y2="10"/>
+                  <line x1="8" x2="12" y1="14" y2="14"/>
+                </svg>
+              </div>
+              Thiết bị phần cứng
+            </h3>
+          </div>
+          <div class="card-body-ov">
+            <div class="device-grid">
+              <div class="device-card">
+                <div class="d-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg></div>
+                <h4>ESP32</h4><p>Vi điều khiển trung tâm, WiFi/BT tích hợp, dual-core</p>
+              </div>
+              <div class="device-card">
+                <div class="d-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+                <h4>MAX30102</h4><p>Đo nhịp tim (BPM) & SpO₂ bằng phương pháp PPG quang học</p>
+              </div>
+              <div class="device-card">
+                <div class="d-icon teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg></div>
+                <h4>DS18B20</h4><p>Cảm biến nhiệt độ số, giao tiếp 1-Wire, ±0.5°C</p>
+              </div>
+              <div class="device-card">
+                <div class="d-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+                <h4>DS3231</h4><p>Module RTC thời gian thực, độ chính xác ±2 phút/năm</p>
+              </div>
+              <div class="device-card">
+                <div class="d-icon teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="12" x="2" y="6" rx="2"/><path d="M12 12h.01"/></svg></div>
+                <h4>LCD1602</h4><p>Màn hình hiển thị cục bộ thông qua giao tiếp I2C</p>
+              </div>
+              <div class="device-card">
+                <div class="d-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+                <h4>MT3608</h4><p>Module tăng áp 3.7V→5V, hiệu suất 93–96%, 500mA</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header-ov">
+            <h3>
+              <div class="ch-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 11 12 14 22 4"/>
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                </svg>
+              </div>
+              Chức năng chính
+            </h3>
+          </div>
+          <div class="card-body-ov">
+            <div class="feature-grid">
+              <div class="feature-item">
+                <div class="f-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+                <div><h4>Theo dõi thời gian thực</h4><p>BPM, SpO₂, nhiệt độ cập nhật liên tục mỗi 2 giây</p></div>
+              </div>
+              <div class="feature-item">
+                <div class="f-icon sky"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+                <div><h4>Biểu đồ lịch sử</h4><p>Chart.js hiển thị xu hướng SpO₂, nhịp tim, nhiệt độ</p></div>
+              </div>
+              <div class="feature-item">
+                <div class="f-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+                <div><h4>Cảnh báo tự động</h4><p>Ngưỡng an toàn cá nhân hóa theo tuổi và giới tính</p></div>
+              </div>
+              <div class="feature-item">
+                <div class="f-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg></div>
+                <div><h4>Lưu trữ Firebase</h4><p>Realtime Database đồng bộ tức thì, lưu toàn bộ lịch sử</p></div>
+              </div>
+              <div class="feature-item">
+                <div class="f-icon yellow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><path d="M16 2v6h6"/></svg></div>
+                <div><h4>Dự báo AI (LSTM)</h4><p>Phân tích xu hướng 5 phút tiếp theo, phát hiện bất thường</p></div>
+              </div>
+              <div class="feature-item">
+                <div class="f-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+                <div><h4>Quản lý nhiều BN</h4><p>Theo dõi đồng thời nhiều bệnh nhân, hồ sơ độc lập</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div><!-- /page-content -->
+  </div><!-- /main -->
+
+  <!-- Toast -->
+  <div class="toast" id="toast"><span id="toast-msg"></span></div>
+
+  <script src="../js/firebase.js"></script>
+  <script src="../js/shared.js"></script>
+  <script>
+    window.requireAuth(function(user) {
+    console.log('[Auth] User đang login:', user.email);
+    });
+  </script>
+</body>
+</html>

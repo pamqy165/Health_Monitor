@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hướng dẫn sử dụng — Hệ thống giám sát sức khỏe</title>
+
+  <!-- Thư viện -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <link rel="stylesheet" href="../css/shared.css">
+  <link rel="stylesheet" href="../css/guide.css">
+</head>
+<body>
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-icon">
+          <img src="../images/Logo HCM-UTE.png" alt="HCMUTE"
+               onerror="this.style.display='none';this.parentElement.style.background='#2563EB';">
+        </div>
+        <div class="logo-text">
+          <span>NHÓM 05</span>
+          <small>TT Cơ sở và Ứng dụng IoT</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="user-avatar"></div>
+      <div class="user-info">
+        <span></span>
+        <small></small>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Điều hướng</div>
+      <a class="nav-item" href="../html/overview.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Tổng quan
+      </a>
+      <a class="nav-item" href="../html/patients.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Danh sách BN
+      </a>
+      <a class="nav-item" href="../html/save_result.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Lưu kết quả
+        <span class="badge">Live</span>
+      </a>
+      <div class="nav-section-label" style="margin-top:8px;">Thông tin</div>
+      <a class="nav-item" href="../html/guide.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+        Hướng dẫn
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="btn-logout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+        Đăng xuất
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <div class="main">
+
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1>Hệ thống giám sát và cảnh báo sức khỏe từ xa</h1>
+      </div>
+      <div class="topbar-right">
+        <div class="status-pill">
+          <span class="dot"></span>
+          Hệ thống đang hoạt động
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- INTRO -->
+      <div class="guide-intro">
+        <div class="guide-intro-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+        </div>
+        <div>
+          <h2>Hướng dẫn sử dụng hệ thống</h2>
+          <p>Tài liệu này hướng dẫn đầy đủ cách vận hành Dashboard — từ bật thiết bị đo, theo dõi chỉ số trực tiếp, lưu kết quả vào hồ sơ bệnh nhân đến đọc phân tích AI. Đọc từ đầu nếu bạn mới bắt đầu, hoặc nhảy thẳng tới mục cần thiết bên dưới.</p>
+        </div>
+      </div>
+
+      <!-- MỤC LỤC -->
+      <div class="toc">
+        <h3>Mục lục nhanh</h3>
+        <div class="toc-list">
+          <a class="toc-item" href="#s1"><span class="toc-num">1</span>Bật thiết bị &amp; kết nối</a>
+          <a class="toc-item" href="#s2"><span class="toc-num">2</span>Đăng nhập</a>
+          <a class="toc-item" href="#s3"><span class="toc-num">3</span>Tổng quan hệ thống</a>
+          <a class="toc-item" href="#s4"><span class="toc-num">4</span>Quản lý bệnh nhân</a>
+          <a class="toc-item" href="#s5"><span class="toc-num">5</span>Theo dõi &amp; đo chỉ số</a>
+          <a class="toc-item" href="#s6"><span class="toc-num">6</span>Lưu kết quả</a>
+          <a class="toc-item" href="#s7"><span class="toc-num">7</span>Đọc phân tích AI</a>
+          <a class="toc-item" href="#s8"><span class="toc-num">8</span>Xem lịch sử &amp; biểu đồ</a>
+          <a class="toc-item" href="#s9"><span class="toc-num">9</span>Ngưỡng cảnh báo</a>
+        </div>
+      </div>
+
+      <!-- ══ MỤC 1: Bật thiết bị ══ -->
+      <div class="guide-section" id="s1">
+        <div class="gs-header" onclick="toggle(this)">
+          <div class="gs-num" style="background:#2563EB;">1</div>
+          <div class="gs-title">
+            <h3>Bật thiết bị và kết nối mạng</h3>
+            <p>Cấp nguồn ESP32, chờ kết nối WiFi và MQTT Broker</p>
+          </div>
+          <svg class="gs-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="gs-body">
+          <ol class="steps">
+            <li class="step">
+              <span class="step-num">1</span>
+              <div class="step-content">
+                <h4>Cấp nguồn cho thiết bị</h4>
+                <p>Cắm pin 18650 (3.7V) vào module tăng áp MT3608. Module sẽ nâng điện áp lên 5V để cấp cho ESP32. Đèn LED nguồn trên board sẽ sáng.</p>
+              </div>
+            </li>
+            <li class="step">
+              <span class="step-num">2</span>
+              <div class="step-content">
+                <h4>Chờ ESP32 kết nối WiFi</h4>
+                <p>Màn hình LCD1602 sẽ hiển thị dòng <code>Connecting WiFi...</code> trong vài giây. Khi kết nối thành công, LCD chuyển sang hiển thị đồng hồ thời gian thực và các chỉ số đang chờ đo.</p>
+              </div>
+            </li>
+            <li class="step">
+              <span class="step-num">3</span>
+              <div class="step-content">
+                <h4>Xác nhận MQTT đã hoạt động</h4>
+                <p>Trên Dashboard web, thanh trạng thái góc trên phải sẽ hiện <span class="tag tag-green">● Hệ thống đang hoạt động</span>. Tại trang <strong>Lưu kết quả</strong>, badge <span class="tag tag-blue">MQTT</span> sẽ nhấp nháy khi nhận dữ liệu.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- ══ MỤC 2: Đăng nhập ══ -->
+      <div class="guide-section" id="s2">
+        <div class="gs-header" onclick="toggle(this)">
+          <div class="gs-num" style="background:#8B5CF6;">2</div>
+          <div class="gs-title">
+            <h3>Đăng nhập hệ thống</h3>
+            <p>Chọn vai trò và xác thực tài khoản</p>
+          </div>
+          <svg class="gs-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="gs-body">
+          <ol class="steps">
+            <li class="step">
+              <span class="step-num">1</span>
+              <div class="step-content">
+                <h4>Chọn vai trò</h4>
+                <p>Trang đăng nhập có hai lựa chọn: <span class="tag tag-blue">Bác sĩ / Y tá</span> — có đầy đủ quyền xem, chỉnh sửa và lưu kết quả, và <span class="tag tag-purple">Người nhà</span> — chỉ xem thông tin sức khỏe.</p>
+              </div>
+            </li>
+            <li class="step">
+              <span class="step-num">2</span>
+              <div class="step-content">
+                <h4>Nhập tài khoản và mật khẩu</h4>
+                <p>Điền tên đăng nhập và mật khẩu được cấp bởi quản trị viên. Nhấn <strong>Đăng nhập</strong> hoặc nhấn phím <code>Enter</code>.</p>
+              </div>
+            </li>
+            <li class="step">
+              <span class="step-num">3</span>
+              <div class="step-content">
+                <h4>Chuyển vào Dashboard</h4>
+                <p>Sau khi xác thực thành công, hệ thống chuyển thẳng tới trang <strong>Tổng quan</strong>. Để đăng xuất, nhấn nút <strong>Đăng xuất</strong> ở cuối thanh sidebar bên trái.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- ══ MỤC 3: Tổng quan ══ -->
+      <div class="guide-section" id="s3">
+        <div class="gs-header" onclick="toggle(this)">
+          <div class="gs-num" style="background:#0EA5E9;">3</div>
+          <div class="gs-title">
+            <h3>Trang Tổng quan</h3>
+            <p>Nắm bắt thông tin hệ thống và nhóm thực hiện</p>
+          </div>
+          <svg class="gs-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="gs-body">
+          <p style="font-size:14px;color:var(--text-mid);margin-bottom:14px;">Trang Tổng quan là màn hình chào — không có dữ liệu bệnh nhân cụ thể tại đây. Nó cung cấp:</p>
+          <ol class="steps">
+            <li class="step">
+              <span class="step-num" style="background:#0EA5E9;">1</span>
+              <div class="step-content">
+                <h4>Mô tả hệ thống và mục tiêu</h4>
+                <p>Giới thiệu 4 mục tiêu chính: thu thập chỉ số sinh tồn, truyền tải đám mây, phân tích AI, và giao diện Dashboard giám sát từ xa.</p>
+              </div>
+            </li>
+            <li class="step">
+              <span class="step-num" style="background:#0EA5E9;">2</span>
+              <div class="step-content">
+                <h4>Danh sách thiết bị phần cứng</h4>
+                <p>Hiển thị các module đang được sử dụng: ESP32, MAX30102, DS18B20, DS3231, LCD1602 và MT3608.</p>
+              </div>
+            </li>
+            <li class="step">
+              <span class="step-num" style="background:#0EA5E9;">3</span>
+              <div class="step-content">
+                <h4>Thành viên nhóm và giảng viên hướng dẫn</h4>
+                <p>Thông tin liên hệ và phân công nhiệm vụ của nhóm thực hiện đề tài.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- ══ MỤC 4: Quản lý bệnh nhân ══ -->
+      <div class="guide-section" id="s4">
+        <div class="gs-header" onclick="toggle(this)">
+          <div class="gs-num" style="background:#10B981;">4</div>
+          <div class="gs-title">
+            <h3>Quản lý danh sách bệnh nhân</h3>
+            <p>Thêm, tìm kiếm và lọc bệnh nhân đang được giám sát</p>
+          </div>
+          <svg class="gs-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="gs-body">
+          <ol class="steps">
+            <li class="step">
+              <span class="step-num" style="background:#10B981;">1</span>
+              <div class="step-content">
+                <h4>Xem danh sách</h4>
+                <p>Mỗi thẻ bệnh nhân hiển thị tên, tuổi, giới tính, 3 chỉ số hiện tại (BPM / SpO₂ / nhiệt độ) và trạng thái màu: <span class="tag tag-green">Bình thường</span> <span class="tag tag-yellow">Cần theo dõi</span> <span class="tag tag-red">Nguy hiểm</span> <span class="tag" style="background:#F1F5F9;color:#64748B;">Offline</span>.</p>
+              </div>
+            </li>
+            <li class="step">
+              <span class="step-num" style="background:#10B981;">2</span>
+              <div class="step-content">
+                <h4>Tìm kiếm và lọc</h4>
+                <p>Gõ tên hoặc mã bệnh nhân vào ô tìm kiếm. Dùng bộ lọc trạng thái để chỉ hiển thị nhóm cần chú ý (ví dụ: chỉ xem những bệnh nhân <strong>Nguy hiểm</strong>).</p>
+              </div>
+            </li>
+            <li class="step">
+              <span class="step-num" style="background:#10B981;">3</span>
+              <div class="step-content">
+                <h4>Thêm bệnh nhân mới</h4>
+                <p>Nhấn nút <strong>+ Thêm bệnh nhân</strong>, điền đầy đủ họ tên, tuổi, giới tính, quan hệ và chẩn đoán ban đầu. Hệ thống tự tạo mã bệnh nhân nếu bạn để trống.</p>
+              </div>
+            </li>
+            <li class="step">
+              <span class="step-num" style="background:#10B981;">4</span>
+              <div class="step-content">
+                <h4>Vào Dashboard chi tiết</h4>
+                <p>Nhấn vào thẻ bệnh nhân hoặc nút <strong>Xem chi tiết</strong> để chuyển sang trang theo dõi đầy đủ của người đó.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- ══ MỤC 5: Theo dõi & đo ══ -->
+      <div class="guide-section" id="s5">
+        <div class="gs-header" onclick="toggle(this)">
+          <div class="gs-num" style="background:#F59E0B;">5</div>
+          <div class="gs-title">
+            <h3>Theo dõi và thực hiện đo chỉ số</h3>
+            <p>Cách đặt tay đúng và đọc kết quả trực tiếp trên thiết bị</p>
+          </div>
+          <svg class="gs-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="gs-body">
+          <ol class="steps">
+            <li class="step">
+              <span class="step-num" style="background:#F59E0B;">1</span>
+              <div class="step-content">
+                <h4>Chuẩn bị trước khi đo</h4>
+                <p>Yêu cầu bệnh nhân nghỉ ngơi ít nhất <strong>5 phút</strong> trước khi đo. Tháo sơn móng tay (nếu có) vì có thể ảnh hưởng tới kết quả SpO₂ của cảm biến MAX30102.</p>
+              </div>
+            </li>
+            <li class="step">
+              <span class="step-num" style="background:#F59E0B;">2</span>
+              <div class="step-content">
+                <h4>Đặt ngón tay lên cảm biến MAX30102</h4>
+                <p>Đặt nhẹ đầu ngón trỏ lên cảm biến, <strong>không nhấn mạnh</strong>. Giữ tay yên — thiết bị sẽ tự động đếm ngược <code>10 giây</code> để ổn định tín hiệu trước khi đo.</p>
+              </div>
+            </li>
+            <li class="step">
+              <span class="step-num" style="background:#F59E0B;">3</span>
+              <div class="step-content">
+                <h4>Đặt cảm biến nhiệt độ DS18B20</h4>
+                <p>Kẹp đầu dò nhiệt vào <strong>nách</strong> của bệnh nhân. Giữ trong suốt quá trình đếm ngược. Lưu ý: kết quả sẽ được hệ thống tự động bù thêm <code>+2°C</code> để phù hợp với nhiệt độ cơ thể người.</p>
+              </div>
+            </li>
+            <li class="step">
+              <span class="step-num" style="background:#F59E0B;">4</span>
+              <div class="step-content">
+                <h4>Đọc kết quả trên LCD và Dashboard</h4>
+                <p>Sau 10 giây, màn hình LCD hiển thị kết quả. Đồng thời, dữ liệu được gửi qua MQTT và cập nhật ngay lên Dashboard web — không cần tải lại trang.</p>
+              </div>
+            </li>
+          </ol>
+          <div class="alert-box alert-warn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+            <p>Nếu bệnh nhân di chuyển tay trong lúc đo, giá trị nhịp tim và SpO₂ có thể bị nhiễu. Tiến hành đo lại nếu kết quả bất thường bất ngờ.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ MỤC 6: Lưu kết quả ══ -->
+      <div class="guide-section" id="s6">
+        <div class="gs-header" onclick="toggle(this)">
+          <div class="gs-num" style="background:#2563EB;">6</div>
+          <div class="gs-title">
+            <h3>Lưu kết quả vào hồ sơ bệnh nhân</h3>
+            <p>Gán kết quả đo hiện tại cho đúng bệnh nhân và lưu vào Firebase</p>
+          </div>
+          <svg class="gs-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="gs-body">
+          <ol class="steps">
+            <li class="step">
+              <span class="step-num">1</span>
+              <div class="step-content">
+                <h4>Vào trang "Lưu kết quả"</h4>
+                <p>Nhấn <strong>Lưu kết quả</strong> trên sidebar. Trang này hiển thị dữ liệu thiết bị trực tiếp (Live) từ MQTT ở cột trái và lựa chọn bệnh nhân ở cột phải.</p>
+              </div>
+            </li>
+            <li class="step">
+              <span class="step-num">2</span>
+              <div class="step-content">
+                <h4>Chọn bệnh nhân</h4>
+                <p>Nhấn vào ô avatar của bệnh nhân cần lưu. Ô được chọn sẽ có dấu <strong>✓</strong> và thông tin hiển thị trong phần xác nhận bên dưới.</p>
+              </div>
+            </li>
+            <li class="step">
+              <span class="step-num">3</span>
+              <div class="step-content">
+                <h4>Thêm ghi chú (không bắt buộc)</h4>
+                <p>Gõ ghi chú lâm sàng vào ô văn bản, ví dụ: <em>"Bệnh nhân vừa nghỉ ngơi 10 phút trước khi đo"</em>. Ghi chú này sẽ lưu cùng bản ghi.</p>
+              </div>
+            </li>
+            <li class="step">
+              <span class="step-num">4</span>
+              <div class="step-content">
+                <h4>Nhấn "Lưu kết quả"</h4>
+                <p>Nút <strong>Lưu kết quả</strong> chỉ hoạt động khi đã chọn bệnh nhân VÀ có dữ liệu từ thiết bị. Sau khi lưu, bản ghi xuất hiện ngay trong bảng <em>Lịch sử lưu gần đây</em> bên dưới.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- ══ MỤC 7: AI ══ -->
+      <div class="guide-section" id="s7">
+        <div class="gs-header" onclick="toggle(this)">
+          <div class="gs-num" style="background:#8B5CF6;">7</div>
+          <div class="gs-title">
+            <h3>Đọc phân tích và dự báo từ AI</h3>
+            <p>Hiểu ý nghĩa trạng thái, độ rủi ro và lời khuyên y tế</p>
+          </div>
+          <svg class="gs-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="gs-body">
+          <p style="font-size:14px;color:var(--text-mid);margin-bottom:14px;">AI cần ít nhất <strong>120 giây</strong> dữ liệu liên tục (60 mẫu) trước khi đưa ra dự báo. Trong thời gian chờ, hộp AI sẽ hiển thị <em>"Vui lòng chờ dữ liệu..."</em>.</p>
+          <ol class="steps">
+            <li class="step">
+              <span class="step-num" style="background:#8B5CF6;">1</span>
+              <div class="step-content">
+                <h4>Trạng thái AI</h4>
+                <p>AI phân loại thành 3 mức: <span class="tag tag-green">Ổn định</span> — không phát hiện xu hướng xấu; <span class="tag tag-yellow">Cần theo dõi</span> — có dấu hiệu bất thường nhẹ; <span class="tag tag-red">Nguy hiểm</span> — dự báo nguy cơ cao trong 5 phút tới.</p>
+              </div>
+            </li>
+            <li class="step">
+              <span class="step-num" style="background:#8B5CF6;">2</span>
+              <div class="step-content">
+                <h4>Thanh độ rủi ro (Risk Score)</h4>
+                <p>Thanh màu biểu thị xác suất rủi ro từ 0% đến 100%. <span class="tag tag-green">Xanh lá &lt;40%</span> bình thường, <span class="tag tag-yellow">Vàng 40–70%</span> cần chú ý, <span class="tag tag-red">Đỏ &gt;70%</span> cần can thiệp.</p>
+              </div>
+            </li>
+            <li class="step">
+              <span class="step-num" style="background:#8B5CF6;">3</span>
+              <div class="step-content">
+                <h4>Lời khuyên y tế</h4>
+                <p>AI tự động sinh lời khuyên cụ thể dựa trên chỉ số và hồ sơ bệnh nhân (tuổi, giới tính). Ví dụ: nếu SpO₂ &lt; 92%, AI sẽ yêu cầu <em>"hỗ trợ oxy y tế ngay lập tức"</em> thay vì lời khuyên chung chung.</p>
+              </div>
+            </li>
+            <li class="step">
+              <span class="step-num" style="background:#8B5CF6;">4</span>
+              <div class="step-content">
+                <h4>Cơ chế Ghi đè an toàn (Safety Override)</h4>
+                <p>Dù AI dự báo thế nào, nếu bất kỳ chỉ số nào vi phạm ngưỡng cấp cứu ngay lập tức (SpO₂ &lt; 92%, nhịp tim &lt; 50 hoặc &gt; 130, sốt &ge; 39°C), hệ thống sẽ tự động ép độ rủi ro lên &ge; 85% và cảnh báo đỏ.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- ══ MỤC 8: Lịch sử & biểu đồ ══ -->
+      <div class="guide-section" id="s8">
+        <div class="gs-header" onclick="toggle(this)">
+          <div class="gs-num" style="background:#0EA5E9;">8</div>
+          <div class="gs-title">
+            <h3>Xem lịch sử đo và biểu đồ phân tích</h3>
+            <p>Tra cứu lịch sử và phân tích xu hướng sức khỏe theo thời gian</p>
+          </div>
+          <svg class="gs-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="gs-body">
+          <ol class="steps">
+            <li class="step">
+              <span class="step-num" style="background:#0EA5E9;">1</span>
+              <div class="step-content">
+                <h4>Tab Lịch sử</h4>
+                <p>Hiển thị toàn bộ các lần đo đã lưu từ Firebase theo thứ tự ngược thời gian. Mỗi hàng có màu sắc trạng thái tương ứng để nhận diện nhanh.</p>
+              </div>
+            </li>
+            <li class="step">
+              <span class="step-num" style="background:#0EA5E9;">2</span>
+              <div class="step-content">
+                <h4>Tab Phân tích — Biểu đồ đường</h4>
+                <p>Ba biểu đồ riêng biệt cho SpO₂, nhịp tim và nhiệt độ — dựa trên 60 mẫu gần nhất. Trục X là thời gian, trục Y là giá trị. Dùng để nhận ra xu hướng tăng/giảm bất thường.</p>
+              </div>
+            </li>
+            <li class="step">
+              <span class="step-num" style="background:#0EA5E9;">3</span>
+              <div class="step-content">
+                <h4>Biểu đồ tổng hợp theo ngày</h4>
+                <p>Biểu đồ cột thể hiện giá trị trung bình của 3 chỉ số trong 4 ngày gần nhất. Hữu ích để đánh giá tiến triển sức khỏe theo ngày, tuần.</p>
+              </div>
+            </li>
+            <li class="step">
+              <span class="step-num" style="background:#0EA5E9;">4</span>
+              <div class="step-content">
+                <h4>Nhận xét xu hướng tự động</h4>
+                <p>Cuối trang Phân tích có đoạn văn bản mô tả xu hướng sức khỏe của bệnh nhân, được tự động tạo dựa trên trạng thái chỉ số hiện tại.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- ══ MỤC 9: Ngưỡng cảnh báo ══ -->
+      <div class="guide-section" id="s9">
+        <div class="gs-header" onclick="toggle(this)">
+          <div class="gs-num" style="background:#EF4444;">9</div>
+          <div class="gs-title">
+            <h3>Bảng ngưỡng cảnh báo</h3>
+            <p>Các mức phân loại trạng thái áp dụng trong toàn hệ thống</p>
+          </div>
+          <svg class="gs-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="gs-body">
+          <p style="font-size:14px;color:var(--text-mid);margin-bottom:14px;">Toàn bộ màu sắc trên Dashboard — thẻ bệnh nhân, giá trị chỉ số, nhãn trạng thái — đều dựa trên bảng ngưỡng thống nhất sau đây.</p>
+
+          <table class="threshold-table">
+            <thead>
+              <tr><th>Chỉ số</th><th>Bình thường</th><th>Cần theo dõi</th><th>Nguy hiểm</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Nhịp tim (BPM)</strong></td>
+                <td><span class="tag tag-green">60 – 100</span></td>
+                <td><span class="tag tag-yellow">50–59 hoặc 101–120</span></td>
+                <td><span class="tag tag-red">&lt; 50 hoặc &gt; 120</span></td>
+              </tr>
+              <tr>
+                <td><strong>SpO₂ (%)</strong></td>
+                <td><span class="tag tag-green">≥ 96%</span></td>
+                <td><span class="tag tag-yellow">92 – 95%</span></td>
+                <td><span class="tag tag-red">&lt; 92%</span></td>
+              </tr>
+              <tr>
+                <td><strong>Nhiệt độ cơ thể (°C)</strong></td>
+                <td><span class="tag tag-green">35 – 37.4°C</span></td>
+                <td><span class="tag tag-yellow">37.5 – 38.9°C</span></td>
+                <td><span class="tag tag-red">&lt; 35°C hoặc ≥ 39°C</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="guide-footer">
+        Nhóm 05 · Cơ sở và Ứng dụng IoTs · HCMUTE 2026 · GVHD: Ths. Trịnh Quốc Thanh
+      </div>
+
+    </div><!-- /page-content -->
+  </div><!-- /main -->
+
+  <div class="toast" id="toast"><span id="toast-msg"></span></div>
+
+  <script src="../js/firebase.js"></script>
+  <script src="../js/shared.js"></script>
+  <script src="../js/guide.js"></script>
+</body>
+</html>
