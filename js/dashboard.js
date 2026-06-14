@@ -331,23 +331,69 @@ async function initChatContext() {
     ? `- BMI: ${(profile.weight / ((profile.height / 100) ** 2)).toFixed(1)} (nặng ${profile.weight}kg, cao ${profile.height}cm)`
     : '- BMI: Chưa có dữ liệu cân nặng/chiều cao';
 
-  chatContext = `Bạn là bác sĩ AI hỗ trợ hệ thống giám sát sức khỏe từ xa.
-    Trả lời bằng tiếng Việt, ngắn gọn và chuyên nghiệp.
-    Luôn dựa vào dữ liệu thực tế của bệnh nhân khi trả lời.
+  // Xây dựng context
+  // Tính thống kê tổng hợp
+  const bpms  = allSamples.map(r => r.heart_rate).filter(Boolean);
+  const spo2s = allSamples.map(r => r.spo2).filter(Boolean);
+  const temps = allSamples.map(r => r.temperature).filter(Boolean);
+  const avg   = arr => arr.length ? (arr.reduce((a,b) => a+b, 0) / arr.length).toFixed(1) : '--';
+  const latest = allSamples[0] || {};
 
-=== THÔNG TIN BỆNH NHÂN ===
-- Tên: ${profile.name || 'Chưa có'}
-- Tuổi: ${profile.age || 'Chưa có'}
-- Giới tính: ${profile.gender || 'Chưa có'}
-- Quan hệ: ${profile.relation || 'Chưa có'}
-- Chẩn đoán: ${profile.diagnosis || 'Chưa có'}
-- Tiền sử bệnh: ${profile.history || 'Chưa có'}
-- Thuốc đang dùng: ${profile.medicine || 'Chưa có'}
-- Dị ứng: ${profile.allergy || 'Chưa có'}
-${bmiLine}
+  // Lấy kết quả phân tích AI gần nhất từ alerts/
+  const alertSnap = await window.db.ref('patients/' + patientId + '/alerts')
+    .orderByChild('timestamp_ai').limitToLast(1).once('value');
+  let lastAiAdvice = 'Chưa có';
+  let lastRisk     = 'Chưa có';
+  alertSnap.forEach(child => {
+    const a      = child.val();
+    lastAiAdvice = a.advice     || 'Chưa có';
+    lastRisk     = a.risk_score != null
+      ? (a.risk_score * 100).toFixed(0) + '%'
+      : 'Chưa có';
+  });
 
-=== DỮ LIỆU SỨC KHỎE (${allSamples.length} mẫu gần nhất) ===
-${sampleLines || '  (Chưa có dữ liệu)'}`;
+  chatContext = `Bạn là trợ lý bác sĩ AI trong hệ thống giám sát sức khỏe từ xa.
+  Nhiệm vụ: Hỗ trợ bác sĩ và người thân hiểu tình trạng bệnh nhân, giải thích chỉ số, cảnh báo nguy hiểm, đề xuất hành động cụ thể.
+
+  NGUYÊN TẮC:
+  - Trả lời bằng tiếng Việt, rõ ràng, có cấu trúc
+  - Luôn dựa vào dữ liệu thực tế bên dưới, không đoán mò
+  - Nếu chỉ số nguy hiểm → cảnh báo rõ và đề xuất liên hệ bác sĩ ngay
+  - Giải thích thuật ngữ y tế bằng ngôn ngữ dễ hiểu khi được hỏi
+  - Không tự chẩn đoán bệnh, chỉ nhận xét dựa trên số liệu đo được
+
+  NGƯỠNG THAM CHIẾU:
+  - Nhịp tim:  Bình thường 60-100 BPM   | Cảnh báo <60 hoặc >100  | Nguy hiểm <50 hoặc >120
+  - SpO₂:      Bình thường ≥96%         | Cảnh báo 92-95%         | Nguy hiểm <92%
+  - Nhiệt độ:  Bình thường 36.1-37.2°C  | Cảnh báo 37.3-38.9°C    | Nguy hiểm <35°C hoặc ≥39°C
+
+  === HỒ SƠ BỆNH NHÂN ===
+  - Họ tên:          ${profile.name       || 'Chưa có'}
+  - Tuổi / Giới:     ${profile.age        || '--'} tuổi / ${profile.gender || 'Chưa có'}
+  - Chẩn đoán:       ${profile.diagnosis  || 'Chưa có'}
+  - Tiền sử bệnh:    ${profile.history    || 'Chưa có'}
+  - Thuốc đang dùng: ${profile.medicine   || 'Chưa có'}
+  - Dị ứng:          ${profile.allergy    || 'Không có'}
+  - ${bmiLine}
+
+  === CHỈ SỐ MỚI NHẤT ===
+  - Thời điểm đo: ${latest.timestamp ? new Date(latest.timestamp).toLocaleString('vi-VN') : 'Chưa có'}
+  - Nhịp tim:     ${latest.heart_rate  ?? '--'} BPM
+  - SpO₂:         ${latest.spo2        ?? '--'} %
+  - Nhiệt độ:     ${latest.temperature ?? '--'} °C
+  ${latest.note ? '- Ghi chú: ' + latest.note : ''}
+
+  === THỐNG KÊ ${allSamples.length} MẪU GẦN NHẤT ===
+  - Nhịp tim:  TB=${avg(bpms)}  | Min=${bpms.length  ? Math.min(...bpms)  : '--'} | Max=${bpms.length  ? Math.max(...bpms)  : '--'} BPM
+  - SpO₂:      TB=${avg(spo2s)} | Min=${spo2s.length ? Math.min(...spo2s) : '--'} | Max=${spo2s.length ? Math.max(...spo2s) : '--'} %
+  - Nhiệt độ:  TB=${avg(temps)} | Min=${temps.length ? Math.min(...temps) : '--'} | Max=${temps.length ? Math.max(...temps) : '--'} °C
+
+  === ĐÁNH GIÁ TỪ AI GẦN NHẤT ===
+  - Nhận xét:   ${lastAiAdvice}
+  - Mức rủi ro: ${lastRisk}
+
+  === CHI TIẾT TỪNG MẪU (mới → cũ) ===
+  ${sampleLines || '  (Chưa có dữ liệu)'}`;
 
   // Cập nhật UI
   const name = profile.name || 'Bệnh nhân';
