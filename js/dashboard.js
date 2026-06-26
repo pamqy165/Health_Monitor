@@ -295,7 +295,7 @@ function computeAverages(data) {
 /* ================================================================
    AI CHAT BOX
    ================================================================ */
-const GROQ_API_KEY_CHAT = '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'; // ← key Groq của bạn
+const GROQ_API_KEY_CHAT = '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'; // ← key Groq của bạn
 const CHAT_MODEL        = 'llama-3.3-70b-versatile';
 const MAX_SAMPLES_CHAT  = 30;
 
